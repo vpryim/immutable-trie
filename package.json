@@ -1,0 +1,25 @@
+{
+  "name": "immutable-trie",
+  "version": "0.1.0",
+  "description": "Basis for efficient persistent data structures",
+  "main": "index.js",
+  "keywords": [
+    "immutable",
+    "persistent",
+    "trie",
+    "hamt"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ActiveObject/immutable-trie.git"
+  },
+  "author": "Vasyl Priymachuk <activeobject.ac@gmail.com>",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "mocha": "~1.17.1",
+    "chai": "~1.9.0"
+  },
+  "scripts": {
+    "test": "mocha -R spec"
+  }
+}
