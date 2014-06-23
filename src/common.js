@@ -86,9 +86,14 @@ function removeAt(items, index) {
   return copy;
 }
 
+function isValue(x) {
+  return typeof x !== 'undefined' && x !== null;
+}
+
 exports.popcount  = popcount;
 exports.hashCode  = hashCode;
 exports.toBitmap  = toBitmap;
 exports.insertAt  = insertAt;
 exports.replaceAt = replaceAt;
 exports.removeAt  = removeAt;
+exports.isValue   = isValue;
