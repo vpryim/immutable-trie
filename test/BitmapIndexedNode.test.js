@@ -11,6 +11,7 @@ function b(str){
 }
 
 function p(obj, d) {
+  console.log('\n');
   console.log(util.inspect(obj, {
     colors: true,
     depth: d || 5
@@ -241,91 +242,85 @@ describe('BitmapIndexedNode', function () {
   });
 
 
+  describe('#without', function () {
+    describe('- remove from node which have only leaf children:', function () {
+      it('should return a new BitmapIndexedNode without removed item', function () {
+        var source = BitmapIndexedNode.Empty
+          .assoc(0, new LeafNode(1, 1, 1))
+          .assoc(0, new LeafNode(2, 2, 2))
+          .assoc(0, new LeafNode(3, 3, 3))
 
-  // describe('#remove from node which have only leaf children', function () {
-  //   it('should return a new BitmapIndexedNode without removed item', function () {
-  //     var source = new BitmapIndexedNode(0, 0, 0, [])
-  //       .add(1, 1)
-  //       .add(2, 2)
-  //       .add(3, 3)
+        var removed = source.without(0, 2, 2);
 
-  //     var removed = source.remove(2);
+        expect(removed.lookup(0, 2, 2)).to.not.exists;
+        expect(removed.lookup(0, 1, 1)).to.exist.and.have.property('value').that.equals(1);
+        expect(removed.lookup(0, 3, 3)).to.exist.and.have.property('value').that.equals(3);
+      });
 
-  //     expect(removed.find(2)).to.be.null;
-  //     expect(removed.find(1)).to.have.exists;
-  //     expect(removed.find(3)).to.have.exists;
-  //   });
-  // });
+      it('should keep values in previous BitmapIndexedNode', function () {
+        var source = BitmapIndexedNode.Empty
+          .assoc(0, new LeafNode(1, 1, 1))
+          .assoc(0, new LeafNode(2, 2, 2))
+          .assoc(0, new LeafNode(3, 3, 3))
 
-  // describe('#remove from node which have two leafs', function () {
-  //   it('should return first leaf when second is removed', function () {
-  //     var source = new BitmapIndexedNode(0, 0, 0, [])
-  //       .add(1, 1)
-  //       .add(2, 2)
+        source.without(0, 2, 2);
 
-  //     var removed = source.remove(2);
+        expect(source.lookup(0, 2, 2)).to.exist.and.have.property('value').that.equals(2);
+        expect(source.lookup(0, 1, 1)).to.exist.and.have.property('value').that.equals(1);
+        expect(source.lookup(0, 3, 3)).to.exist.and.have.property('value').that.equals(3);
+      });
+    });
 
-  //     expect(removed).to.be.instanceof(Leaf);
-  //     expect(removed).to.have.property('key').that.equals(1)
-  //     expect(removed).equals(source.children[0]);
-  //   });
+    describe('- remove deep value:', function () {
+      it('should return new BitmapIndexedNode without removed value', function () {
+        var A = b('1 00001');
+        var source = BitmapIndexedNode.Empty
+          .assoc(0, new LeafNode(1, 1, 1))
+          .assoc(0, new LeafNode(2, 2, 2))
+          .assoc(0, new LeafNode(A, A, A))
 
-  //   it('should return second leaf when first is removed', function () {
-  //     var source = new BitmapIndexedNode(0, 0, 0, [])
-  //       .add(1, 1)
-  //       .add(2, 2)
+        var removed = source.without(0, A, A);
 
-  //     var removed = source.remove(1);
+        expect(removed.lookup(0, A, A)).to.not.exists;
+        expect(removed.lookup(0, 1, 1)).to.exist.and.have.property('value').that.equals(1);
+        expect(removed.lookup(0, 2, 2)).to.exist.and.have.property('value').that.equals(2);
+      });
+    });
 
-  //     expect(removed).to.be.instanceof(Leaf);
-  //     expect(removed).to.have.property('key').that.equals(2)
-  //     expect(removed).equals(source.children[1]);
-  //   });
-  // });
+    describe('- remove deep value from BitmapIndexedNode that has only one child', function () {
+      it('should reduce to the one BitmapIndexedNode', function () {
+        var A = b('1 00001');
+        var source = BitmapIndexedNode.Empty
+          .assoc(0, new LeafNode(1, 1, 1))
+          .assoc(0, new LeafNode(A, A, A))
 
-  // describe('#remove deep value', function () {
-  //   it('should return new BitmapIndexedNode without removed value', function () {
-  //     var source = new BitmapIndexedNode(0, 0, 0, [])
-  //       .add(1, 1)
-  //       .add(2, 2)
-  //       .add(33, 33)
+        var removed = source.without(0, A, A);
 
-  //     var removed = source.remove(33);
+        expect(removed.lookup(0, A, A)).to.not.exists;
+        expect(removed.lookup(0, 1, 1)).to.exist.and.have.property('value').that.equals(1);
+        expect(removed.children.length).to.equals(1);
+        expect(removed.children[0].isLeaf).to.be.true;
+      });
+    });
 
-  //     expect(removed.find(33)).to.be.null;
-  //     expect(removed.find(1)).equals(1);
-  //     expect(removed.find(2)).equals(2);
-  //   });
-  // });
+    describe('- remove deep value from BitmapIndexedNode that has more that two children:', function () {
+      it('should return new BitmapIndexedNode without removed value', function () {
+        var A = b('0 00011');
+        var B = b('1 00001');
+        var source = BitmapIndexedNode.Empty
+          .assoc(0, new LeafNode(1, 1, 1))
+          .assoc(0, new LeafNode(2, 2, 2))
+          .assoc(0, new LeafNode(A, A, A))
+          .assoc(0, new LeafNode(B, B, B))
 
-  // describe('#remove deep value from BitmapIndexedNode that has only one child', function () {
-  //   it('should return new Leaf without removed value', function () {
-  //     var source = new BitmapIndexedNode(0, 0, 0, [])
-  //       .add(1, 1)
-  //       .add(33, 33)
+        var removed = source.without(B);
 
-  //     var removed = source.remove(33);
-
-  //     expect(removed).to.be.instanceof(Leaf);
-  //     expect(removed).to.have.property('key').that.equals(1);
-  //   });
-  // });
-
-  // describe('#remove deep value from BitmapIndexedNode that has more that two children', function () {
-  //   it('should return new BitmapIndexedNode without removed value', function () {
-  //     var source = new BitmapIndexedNode(0, 0, 0, [])
-  //       .add(1, 1)
-  //       .add(2, 2)
-  //       .add(3, 3)
-  //       .add(33, 33)
-
-  //     var removed = source.remove(33);
-
-  //     expect(removed.find(33)).to.be.null;
-  //     expect(removed.find(1)).equals(1);
-  //     expect(removed.find(2)).equals(2);
-  //     expect(removed.find(3)).equals(3);
-  //   });
-  // });
+        expect(removed.lookup(0, B, B)).to.not.exists;
+        expect(removed.lookup(0, 1, 1)).to.exist.and.have.property('value').that.equals(1);
+        expect(removed.lookup(0, 2, 2)).to.exist.and.have.property('value').that.equals(2);
+        expect(removed.lookup(0, A, A)).to.exist.and.have.property('value').that.equals(A);
+      });
+    });
+  });
 });
 

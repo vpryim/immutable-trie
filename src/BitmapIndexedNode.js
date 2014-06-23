@@ -43,7 +43,38 @@ BitmapIndexedNode.prototype.assoc = function(shift, leaf) {
 };
 
 BitmapIndexedNode.prototype.without = function(shift, hcode, key) {
+  var bit = toBitmap((hcode >>> (this.level * SHIFT_STEP)) & MASK);
+  var exists = this.bitmap & bit;
 
+  if (exists) {
+    var index = popcount(this.bitmap & (bit - 1));
+    var remains = this.children.length - 1;
+    var child = this.children[index];
+
+    if (child.isLeaf && this.children.length > 2) {
+      var children = removeAt(this.children, index);
+
+      /*
+        Reset a bit at given index, for example:
+          101011
+          001000
+          ------
+          100011
+       */
+      var bitmap = this.bitmap & (~toBitmap(index + 1));
+      return new BitmapIndexedNode(bitmap, children);
+    }
+
+    if (child.isLeaf && this.children.length <= 2) {
+      return this.children[index === 1 ? 0 : 1];
+    }
+
+    var newNode = this.children[index].without(shift + 1, hcode, key);
+    var children = replaceAt(this.children, newNode, index);
+    return new BitmapIndexedNode(this.bitmap, children);
+  }
+
+  return this;
 };
 
 BitmapIndexedNode.prototype.lookup = function(shift, hcode, key) {
@@ -57,54 +88,6 @@ BitmapIndexedNode.prototype.lookup = function(shift, hcode, key) {
 
   return child.isLeaf ? (child.key === key ? child : null) : child.lookup(shift + 1, hcode, key);
 };
-
-// BitmapIndexedNode.prototype.del = function (hcode) {
-//   var bit = toBitmap((hcode >>> (this.level * SHIFT_STEP)) & MASK);
-//   var exists = this.bitmap & bit;
-
-//   if (exists) {
-//     var index = popcount(this.bitmap & (bit - 1));
-//     var remains = this.children.length - 1;
-//     var removed = this.children[index].del(hcode);
-
-//     if (remains === 0 && removed === null) {
-//       return this;
-//     }
-
-//     if (remains === 0 && removed !== null) {
-//       return removed;
-//     }
-
-//     if (remains === 1 && removed === null) {
-//       return index === 0 ? this.children[1] : this.children[0];
-//     }
-
-//     if (remains === 1 && removed !== null) {
-//       var remainsNode = index === 0 ? this.children[1] : this.children[0];
-//       var children = replaceAt(this.children, removed, index);
-//       return new BitmapIndexedNode(this.level, this._fragment, this.bitmap, children);
-//     }
-
-//     if (remains > 1 && removed === null) {
-//       var children = removeAt(this.children, index);
-
-//       /*
-//         Reset a bit at given index, for example:
-//           101011
-//           001000
-//           ------
-//           100011
-//        */
-//       var bitmap = this.bitmap & (~toBitmap(index));
-//       return new BitmapIndexedNode(this.level, this._fragment, bitmap, children);
-//     }
-
-//     if (remains > 1 && removed !== null) {
-//       var children = replaceAt(this.children, removed, index);
-//       return new BitmapIndexedNode(this.level, this._fragment, this.bitmap, children);
-//     }
-//   }
-// };
 
 BitmapIndexedNode.prototype.at = function (bit) {
   return this.children[popcount(this.bitmap & (bit - 1))];

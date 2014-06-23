@@ -6,7 +6,7 @@ var BitmapIndexedNode = require('./BitmapIndexedNode');
 var LeafNode = require('./LeafNode');
 
 function Trie(count, root) {
-  this.count = count;
+  this._count = count;
   this.root = root;
 }
 
@@ -16,12 +16,12 @@ Trie.prototype.assoc = function(key, value) {
   var node = new LeafNode(hashCode(key), key, value);
   var newRoot = this.root.assoc(0, node);
 
-  return new Trie(this.count + 1, newRoot);
+  return new Trie(this._count + 1, newRoot);
 };
 
 Trie.prototype.without = function(key) {
   var newRoot = this.root.without(0, hashCode(key), key);
-  return newRoot === this.root ? this : new Trie(this.count - 1, newRoot);
+  return newRoot === this.root ? this : new Trie(this._count - 1, newRoot);
 };
 
 Trie.prototype.get = function(key) {
@@ -35,6 +35,17 @@ Trie.prototype.has = function(key) {
 
 Trie.prototype.reduce = function(fn, init) {
   return this.root.reduce(fn, init);
+};
+
+Trie.prototype.count = function () {
+  return this._count;
+};
+
+Trie.prototype.keys = function () {
+  return this.reduce(function (keys, key) {
+    keys.push(key);
+    return keys;
+  }, []);
 };
 
 module.exports = Trie;
