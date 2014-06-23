@@ -110,4 +110,18 @@ BitmapIndexedNode.prototype.at = function (bit) {
   return this.children[popcount(this.bitmap & (bit - 1))];
 };
 
+BitmapIndexedNode.prototype.reduce = function (fn, init) {
+  var acc = init,
+      len = this.children.length,
+      i = -1;
+
+  while(++i < len) {
+    var child = this.children[i];
+
+    acc = child.isLeaf ? fn(acc, child.value) : child.reduce(fn, acc);
+  }
+
+  return acc;
+};
+
 module.exports = BitmapIndexedNode;

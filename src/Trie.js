@@ -34,7 +34,7 @@ Trie.prototype.has = function(key) {
 };
 
 Trie.prototype.reduce = function(fn, init) {
-
+  return this.root.reduce(fn, init);
 };
 
 module.exports = Trie;
