@@ -24,6 +24,11 @@ Trie.prototype.without = function(key) {
   return newRoot === this.root ? this : new Trie(this.count - 1, newRoot);
 };
 
+Trie.prototype.get = function(key) {
+  var found = this.root.lookup(0, hashCode(key), key);
+  return isValue(found) ? found.value : null;
+};
+
 Trie.prototype.has = function(key) {
   return isValue(this.root.lookup(0, hashCode(key), key));
 };

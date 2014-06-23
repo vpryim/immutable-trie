@@ -10,13 +10,11 @@ var SHIFT_STEP = 5;
 var BUCKET_SIZE = 32;
 var MASK = BUCKET_SIZE - 1;
 
-function isLeaf(node) {
-  return node.hasOwnProperty('key');
-}
 
 function BitmapIndexedNode(bitmap, children) {
   this.bitmap = bitmap | 0; // explicitly convert to 32-bit unsigned int
   this.children = children;
+  this.isLeaf = false;
 }
 
 BitmapIndexedNode.Empty = new BitmapIndexedNode(0, []);
@@ -34,7 +32,7 @@ BitmapIndexedNode.prototype.assoc = function(shift, leaf) {
 
   var child = this.children[idx];
 
-  if (isLeaf(child)) {
+  if (child.isLeaf) {
     var biBitmap = toBitmap(child.hcode >>> ((shift + 1) * SHIFT_STEP)) | toBitmap(leaf.hcode >>> ((shift + 1) * SHIFT_STEP));
     var biNode = new BitmapIndexedNode(biBitmap, [child, leaf]);
     return new BitmapIndexedNode(newBitmap, replaceAt(this.children, biNode, idx));
@@ -57,11 +55,7 @@ BitmapIndexedNode.prototype.lookup = function(shift, hcode, key) {
 
   var child = this.at(bit);
 
-  if (isLeaf(child)) {
-    return child;
-  }
-
-  return child.lookup(shift + 1, hcode, key);
+  return child.isLeaf ? (child.key === key ? child : null) : child.lookup(shift + 1, hcode, key);
 };
 
 // BitmapIndexedNode.prototype.del = function (hcode) {

@@ -200,7 +200,7 @@ describe('BitmapIndexedNode', function () {
       var A = b('01010');
       var leaf = new LeafNode(A, A, 1);
       var biNode = new BitmapIndexedNode(toBitmap(A), [leaf]);
-      expect(biNode.lookup(0, A)).to.exist.and.equals(leaf);
+      expect(biNode.lookup(0, A, A)).to.exist.and.equals(leaf);
     });
 
     it('can find two deep value', function () {
@@ -215,8 +215,8 @@ describe('BitmapIndexedNode', function () {
       var innerBiNode = new BitmapIndexedNode(bitmap, [leafA, leafB]);
       var outerBiNode = new BitmapIndexedNode(bitmap, [innerBiNode]);
 
-      expect(outerBiNode.lookup(0, A)).to.exist.and.equals(leafA);
-      expect(outerBiNode.lookup(0, B)).to.exist.and.equals(leafB);
+      expect(outerBiNode.lookup(0, A, A)).to.exist.and.equals(leafA);
+      expect(outerBiNode.lookup(0, B, B)).to.exist.and.equals(leafB);
     });
 
     it('can find three deep value', function () {
@@ -234,9 +234,9 @@ describe('BitmapIndexedNode', function () {
       var innerBiNode2 = new BitmapIndexedNode(toBitmap(b('00001')), [innerBiNode1]);
       var outerBiNode = new BitmapIndexedNode(toBitmap(b('10001')), [innerBiNode2]);
 
-      expect(outerBiNode.lookup(0, A)).to.exist.and.equals(leafA);
-      expect(outerBiNode.lookup(0, B)).to.exist.and.equals(leafB);
-      expect(outerBiNode.lookup(0, C)).to.exist.and.equals(leafC);
+      expect(outerBiNode.lookup(0, A, A)).to.exist.and.equals(leafA);
+      expect(outerBiNode.lookup(0, B, B)).to.exist.and.equals(leafB);
+      expect(outerBiNode.lookup(0, C, C)).to.exist.and.equals(leafC);
     });
   });
 
