@@ -18,11 +18,28 @@ describe('Trie', function() {
       expect(trie.has(1)).is.true;
     });
 
-    it('should a several new values into empty trie', function() {
+    it('should add several new values into empty trie', function() {
       var trie = Trie.Empty.assoc(1, 1).assoc(2, 2).assoc(3, 3);
       expect(trie.has(1)).is.true;
       expect(trie.has(2)).is.true;
       expect(trie.has(3)).is.true;
+    });
+
+    it('should assoc two values with different keys but equal hashcodes', function() {
+      var trie = Trie.Empty.assoc('AaAa', 'value1').assoc('BBBB', 'value2');
+      expect(trie.get('AaAa')).to.equal('value1');
+      expect(trie.get('BBBB')).to.equal('value2');
+    });
+
+    it('should assoc three values with different keys but equal hashcodes', function() {
+      var trie = Trie.Empty
+        .assoc('AaAa', 'value1')
+        .assoc('BBBB', 'value2')
+        .assoc('AaBB', 'value3')
+
+      expect(trie.get('AaAa')).to.equal('value1');
+      expect(trie.get('BBBB')).to.equal('value2');
+      expect(trie.get('AaBB')).to.equal('value3');
     });
   });
 

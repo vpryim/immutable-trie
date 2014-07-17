@@ -86,6 +86,25 @@ function removeAt(items, index) {
   return copy;
 }
 
+/**
+ * Find first element for which predicate is true 
+ * @param {Array} items
+ * @param {Function} pred
+ * @return {*}
+ */
+function find(items, pred) {
+  var len = items.length,
+      i = -1;
+
+  while(++i < len) {
+    if (pred(items[i], i)) {
+      return items[i];
+    }
+  }
+
+  return null;
+}
+
 function isValue(x) {
   return typeof x !== 'undefined' && x !== null;
 }
@@ -96,4 +115,5 @@ exports.toBitmap  = toBitmap;
 exports.insertAt  = insertAt;
 exports.replaceAt = replaceAt;
 exports.removeAt  = removeAt;
+exports.find      = find;
 exports.isValue   = isValue;

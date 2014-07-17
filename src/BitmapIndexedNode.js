@@ -6,6 +6,8 @@ var insertAt  = common.insertAt;
 var replaceAt = common.replaceAt;
 var removeAt  = common.removeAt;
 
+var HashCollisionNode = require('./HashCollisionNode');
+
 var SHIFT_STEP = 5;
 var BUCKET_SIZE = 32;
 var MASK = BUCKET_SIZE - 1;
@@ -31,6 +33,11 @@ BitmapIndexedNode.prototype.assoc = function(shift, leaf) {
   }
 
   var child = this.children[idx];
+
+  if (child.isLeaf && child.hcode === leaf.hcode) {
+    var hcNode = new HashCollisionNode(child.hcode, [child, leaf]);
+    return new BitmapIndexedNode(this.bitmap, replaceAt(this.children, hcNode, idx));
+  }
 
   if (child.isLeaf) {
     var biBitmap = toBitmap(child.hcode >>> ((shift + 1) * SHIFT_STEP)) | toBitmap(leaf.hcode >>> ((shift + 1) * SHIFT_STEP));
