@@ -16,10 +16,13 @@
   "author": "Vasyl Pryimachuk <activeobject.ac@gmail.com>",
   "license": "Apache-2.0",
   "devDependencies": {
-    "mocha": "~1.17.1",
-    "chai": "~1.9.0"
+    "chai": "~1.9.0",
+    "istanbul": "^0.3.0",
+    "mocha": "~1.17.1"
   },
   "scripts": {
-    "test": "mocha -R spec"
+    "test": "mocha -R spec",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- -R dot --check-leaks",
+    "test-travis": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- -R spec --check-leaks"
   }
 }
