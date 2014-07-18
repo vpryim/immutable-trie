@@ -114,4 +114,18 @@ BitmapIndexedNode.prototype.reduce = function (fn, init) {
   return acc;
 };
 
+BitmapIndexedNode.prototype.kvreduce = function (fn, init) {
+  var acc = init,
+      len = this.children.length,
+      i = -1;
+
+  while(++i < len) {
+    var child = this.children[i];
+
+    acc = child.isLeaf ? fn(acc, child.key, child.value) : child.kvreduce(fn, acc);
+  }
+
+  return acc;
+};
+
 module.exports = BitmapIndexedNode;

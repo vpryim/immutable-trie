@@ -43,4 +43,17 @@ HashCollisionNode.prototype.reduce = function(fn, init) {
   return acc;
 };
 
+HashCollisionNode.prototype.kvreduce = function(fn, init) {
+  var acc = init,
+      len = this.children.length,
+      i = -1;
+
+  while(++i < len) {
+    var c = this.children[i];
+    acc = fn(acc, c.key, c.value);
+  }
+
+  return acc;
+};
+
 module.exports = HashCollisionNode;

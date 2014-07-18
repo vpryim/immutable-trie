@@ -37,6 +37,10 @@ Trie.prototype.reduce = function(fn, init) {
   return this.root.reduce(fn, init);
 };
 
+Trie.prototype.kvreduce = function(fn, init) {
+  return this.root.kvreduce(fn, init);
+};
+
 Trie.prototype.count = function () {
   return this._count;
 };
