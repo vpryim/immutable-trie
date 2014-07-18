@@ -1,6 +1,5 @@
 var common    = require('./common');
 var popcount  = common.popcount;
-var hashCode  = common.hashCode;
 var toBitmap  = common.toBitmap;
 var insertAt  = common.insertAt;
 var replaceAt = common.replaceAt;
