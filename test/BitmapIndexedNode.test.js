@@ -3,6 +3,7 @@ var chai = require('chai');
 var expect = chai.expect;
 
 var BitmapIndexedNode = require('../src/BitmapIndexedNode');
+var HashCollisionNode = require('../src/HashCollisionNode');
 var LeafNode = require('../src/LeafNode');
 var toBitmap = require('../src/common').toBitmap;
 
@@ -20,6 +21,23 @@ function p(obj, d) {
 
 function isLeaf(node) {
   return node.hasOwnProperty('key');
+}
+
+function hashCode(value) {
+  var hash = 0, character;
+
+  if (typeof value === 'number') {
+    return value;
+  }
+
+  if (value.length === 0) return hash;
+
+  for (var i = 0, l = value.length; i < l; ++i) {
+    character = value.charCodeAt(i);
+    hash = (((hash << 5) - hash) + character) | 0; // Convert to 32bit integer
+  }
+
+  return hash;
 }
 
 describe('BitmapIndexedNode', function () {
@@ -131,6 +149,30 @@ describe('BitmapIndexedNode', function () {
 
     });
 
+    describe('- insert LeafNode at position with existing BitmapIndexedNode:', function() {
+      before(function() {
+        var A = new LeafNode(b('00 01010'), b('00 01010'), 1);
+        var B = new LeafNode(b('11 01010'), b('11 01010'), 2);
+        var C = new LeafNode(b('10 01010'), b('11 01010'), 2);
+        this.fullNode = BitmapIndexedNode.Empty.assoc(0, A).assoc(0, B);
+      });
+
+      it('should create a new BitmapIndexedNode on the insert position', function() {
+        var D = new LeafNode(b('111 01010'), b('111 01010'), 3);
+        var newNode = this.fullNode.assoc(0, D);
+
+        expect(newNode.children[0]).to.be.instanceof(BitmapIndexedNode);
+        expect(newNode.children[0]).to.not.equal(this.fullNode.children[0]);
+      });
+
+      it('new BitmapIndexedNode should have three members', function() {
+        var D = new LeafNode(b('111 01010'), b('111 01010'), 3);
+        var newNode = this.fullNode.assoc(0, D);
+
+        expect(newNode.children[0].children).to.have.length(3);
+      });
+    });
+
     describe('- add 32 items:', function () {
       before(function () {
         this.numbers = [];
@@ -190,6 +232,15 @@ describe('BitmapIndexedNode', function () {
         var nodeAfter = nodeBefore.assoc(0, new LeafNode(32, 32, 32));
 
         expect(nodeBefore.children[0]).to.equals(nodeAfter.children[0].children[0]);
+      });
+    });
+
+    describe('- insert two values with different keys but equal hashcodes', function() {
+      it('should create new HashCollisionNode on the collision place', function() {
+        var A = new LeafNode(hashCode('AaAa'), 'AaAa', 'value1');
+        var B = new LeafNode(hashCode('BBBB'), 'BBBB', 'value2');
+        var node = BitmapIndexedNode.Empty.assoc(0, A).assoc(0, B);
+        expect(node.children[0]).to.be.instanceof(HashCollisionNode);
       });
     });
   });
@@ -320,6 +371,32 @@ describe('BitmapIndexedNode', function () {
         expect(removed.lookup(0, 2, 2)).to.exist.and.have.property('value').that.equals(2);
         expect(removed.lookup(0, A, A)).to.exist.and.have.property('value').that.equals(A);
       });
+    });
+  });
+
+  describe('#reduce', function() {
+    it('can calculate sum of child values', function() {
+      var sum = function(a, b) { return a + b; };
+      var A = new LeafNode(hashCode('key1'), 'key1', 1);
+      var B = new LeafNode(hashCode('key2'), 'key2', 2);
+      var hnode = BitmapIndexedNode.Empty.assoc(0, A).assoc(0, B);
+
+      expect(hnode.reduce(sum, 0)).to.equal(3);
+    });
+  });
+
+  describe('#kvreduce', function() {
+    it('can collect entry list', function() {
+      var makeEntry = function(acc, key, value) {
+        acc.push([key, value]);
+        return acc;
+      };
+
+      var A = new LeafNode(hashCode('key1'), 'key1', 1);
+      var B = new LeafNode(hashCode('key2'), 'key2', 2);
+      var hnode = BitmapIndexedNode.Empty.assoc(0, A).assoc(0, B);
+
+      expect(hnode.kvreduce(makeEntry, [])).to.have.deep.members([['key1', 1], ['key2', 2]]);
     });
   });
 });

@@ -10,28 +10,6 @@ function popcount(i) {
 }
 
 /**
- * Calculate hash code for arbitrary string or number.
- * @param {Number|String} value
- * @return {Number} hash code
- */
-function hashCode(value) {
-  var hash = 0, character;
-
-  if (typeof value === 'number') {
-    return value;
-  }
-
-  if (value.length === 0) return hash;
-
-  for (var i = 0, l = value.length; i < l; ++i) {
-    character = value.charCodeAt(i);
-    hash = (((hash << 5) - hash) + character) | 0; // Convert to 32bit integer
-  }
-
-  return hash;
-}
-
-/**
  * Convert number into bitmap where bit at position that correspods to number
  * equals one.
  * For example:
@@ -87,7 +65,7 @@ function removeAt(items, index) {
 }
 
 /**
- * Find first element for which predicate is true 
+ * Find first element for which predicate is true
  * @param {Array} items
  * @param {Function} pred
  * @return {*}
@@ -105,15 +83,9 @@ function find(items, pred) {
   return null;
 }
 
-function isValue(x) {
-  return typeof x !== 'undefined' && x !== null;
-}
-
 exports.popcount  = popcount;
-exports.hashCode  = hashCode;
 exports.toBitmap  = toBitmap;
 exports.insertAt  = insertAt;
 exports.replaceAt = replaceAt;
 exports.removeAt  = removeAt;
 exports.find      = find;
-exports.isValue   = isValue;

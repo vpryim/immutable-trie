@@ -5,6 +5,5 @@ Persistent Hash Array Mapped Trie
 [![Build Status](https://travis-ci.org/ActiveObject/immutable-trie.svg?branch=master)](https://travis-ci.org/ActiveObject/immutable-trie)
 
 TODO:
- - ArrayNode and HashCollisionNode
+ - compact full BitmapIndexedNode in ArrayNode and vise versa
  - transients
- - richer api

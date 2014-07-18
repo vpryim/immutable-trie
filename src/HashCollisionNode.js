@@ -1,5 +1,4 @@
-var common = require('./common');
-var find = common.find;
+var find = require('./common').find;
 
 function HashCollisionNode(hcode, children) {
   this.hcode = hcode;

@@ -4,7 +4,23 @@ var expect = chai.expect;
 
 var HashCollisionNode = require('../src/HashCollisionNode');
 var LeafNode = require('../src/LeafNode');
-var hashCode = require('../src/common').hashCode;
+
+function hashCode(value) {
+  var hash = 0, character;
+
+  if (typeof value === 'number') {
+    return value;
+  }
+
+  if (value.length === 0) return hash;
+
+  for (var i = 0, l = value.length; i < l; ++i) {
+    character = value.charCodeAt(i);
+    hash = (((hash << 5) - hash) + character) | 0; // Convert to 32bit integer
+  }
+
+  return hash;
+}
 
 describe('HashCollisionNode', function () {
   describe('#assoc', function() {
@@ -81,7 +97,7 @@ describe('HashCollisionNode', function () {
       var A = new LeafNode(hashCode('AaAa'), 'AaAa', 'value1');
       var B = new LeafNode(hashCode('BBBB'), 'BBBB', 'value2');
       var hnode = new HashCollisionNode(hashCode('AaAa'), [A, B]);
-      
+
       expect(hnode.lookup(0, 0, 'AaAa')).to.equal(A);
     });
 
@@ -89,7 +105,7 @@ describe('HashCollisionNode', function () {
       var A = new LeafNode(hashCode('AaAa'), 'AaAa', 'value1');
       var B = new LeafNode(hashCode('BBBB'), 'BBBB', 'value2');
       var hnode = new HashCollisionNode(hashCode('AaAa'), [A, B]);
-      
+
       expect(hnode.lookup(0, 0, 'missing')).to.be.a('null');
     });
   });
@@ -100,8 +116,23 @@ describe('HashCollisionNode', function () {
       var A = new LeafNode(hashCode('AaAa'), 'AaAa', 1);
       var B = new LeafNode(hashCode('BBBB'), 'BBBB', 2);
       var hnode = new HashCollisionNode(hashCode('AaAa'), [A, B]);
-      
+
       expect(hnode.reduce(sum, 0)).to.equal(3);
+    });
+  });
+
+  describe('#kvreduce', function() {
+    it('can collect entry list', function() {
+      var makeEntry = function(acc, key, value) {
+        acc.push([key, value]);
+        return acc;
+      };
+
+      var A = new LeafNode(hashCode('AaAa'), 'AaAa', 1);
+      var B = new LeafNode(hashCode('BBBB'), 'BBBB', 2);
+      var hnode = new HashCollisionNode(hashCode('AaAa'), [A, B]);
+
+      expect(hnode.kvreduce(makeEntry, [])).to.have.deep.members([['AaAa', 1], ['BBBB', 2]]);
     });
   });
 });
