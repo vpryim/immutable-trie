@@ -56,11 +56,11 @@ BitmapIndexedNode.prototype.without = function(shift, hcode, key) {
   var bit = toBitmap((hcode >>> (this.level * SHIFT_STEP)) & MASK);
   var exists = this.bitmap & bit;
 
-
   if (exists) {
     var index = popcount(this.bitmap & (bit - 1));
     var remains = this.children.length - 1;
     var child = this.children[index];
+
 
     if (child.isLeaf && this.children.length > 2) {
       var children = removeAt(this.children, index);
@@ -72,7 +72,7 @@ BitmapIndexedNode.prototype.without = function(shift, hcode, key) {
           ------
           100011
        */
-      var bitmap = this.bitmap & (~toBitmap(index + 1));
+      var bitmap = this.bitmap & (~toBitmap(child.hcode));
       return new BitmapIndexedNode(bitmap, children);
     }
 
@@ -95,11 +95,14 @@ BitmapIndexedNode.prototype.without = function(shift, hcode, key) {
 BitmapIndexedNode.prototype.lookup = function(shift, hcode, key) {
   var bit = toBitmap((hcode >>> (shift * SHIFT_STEP)) & MASK) & this.bitmap;
 
+
   if (!bit) {
     return null;
   }
 
+  // console.log(bit, this.children);
   var child = this.at(bit);
+  // console.log(child)
 
   return child.isLeaf ? (child.key === key ? child : null) : child.lookup(shift + 1, hcode, key);
 };
