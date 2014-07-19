@@ -56,6 +56,7 @@ BitmapIndexedNode.prototype.without = function(shift, hcode, key) {
   var bit = toBitmap((hcode >>> (this.level * SHIFT_STEP)) & MASK);
   var exists = this.bitmap & bit;
 
+
   if (exists) {
     var index = popcount(this.bitmap & (bit - 1));
     var remains = this.children.length - 1;
@@ -75,8 +76,12 @@ BitmapIndexedNode.prototype.without = function(shift, hcode, key) {
       return new BitmapIndexedNode(bitmap, children);
     }
 
-    if (child.isLeaf && this.children.length <= 2) {
+    if (child.isLeaf && this.children.length === 2) {
       return this.children[index === 1 ? 0 : 1];
+    }
+
+    if (child.isLeaf && this.children.length === 1) {
+      return BitmapIndexedNode.Empty;
     }
 
     var newNode = this.children[index].without(shift + 1, hcode, key);

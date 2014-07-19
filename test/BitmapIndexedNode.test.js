@@ -373,12 +373,28 @@ describe('BitmapIndexedNode', function () {
           .assoc(0, new LeafNode(A, A, A))
           .assoc(0, new LeafNode(B, B, B))
 
-        var removed = source.without(B);
+        var removed = source.without(0, B, B);
 
         expect(removed.lookup(0, B, B)).to.not.exists;
         expect(removed.lookup(0, 1, 1)).to.exist.and.have.property('value').that.equals(1);
         expect(removed.lookup(0, 2, 2)).to.exist.and.have.property('value').that.equals(2);
         expect(removed.lookup(0, A, A)).to.exist.and.have.property('value').that.equals(A);
+      });
+    });
+
+    describe('- remove value from single-item BitmapIndexedNode', function() {
+      it('should return BitmapIndexedNode.Empty', function() {
+        var source = BitmapIndexedNode.Empty.assoc(0, new LeafNode(1, 1, 1));
+        expect(source.without(0, 1, 1)).to.equal(BitmapIndexedNode.Empty);
+      });
+    });
+
+    describe('- remove value that not exists', function() {
+      it('should return this node', function() {
+        expect(BitmapIndexedNode.Empty.without(0, 1, 1)).to.equal(BitmapIndexedNode.Empty);
+
+        var source = BitmapIndexedNode.Empty.assoc(0, new LeafNode(1, 1, 1));
+        expect(source.without(0, 2, 2)).to.equal(source);
       });
     });
   });
