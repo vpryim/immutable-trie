@@ -33,6 +33,10 @@ BitmapIndexedNode.prototype.assoc = function(shift, leaf) {
 
   var child = this.children[idx];
 
+  if (child.isLeaf && child.key === leaf.key) {
+    return new BitmapIndexedNode(this.bitmap, replaceAt(this.children, leaf, idx));
+  }
+
   if (child.isLeaf && child.hcode === leaf.hcode) {
     var hcNode = new HashCollisionNode(child.hcode, [child, leaf]);
     return new BitmapIndexedNode(this.bitmap, replaceAt(this.children, hcNode, idx));

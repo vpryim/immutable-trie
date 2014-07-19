@@ -243,6 +243,15 @@ describe('BitmapIndexedNode', function () {
         expect(node.children[0]).to.be.instanceof(HashCollisionNode);
       });
     });
+
+    describe('- insert two different values with equal keys', function() {
+      it('should leave only last value', function() {
+        var A = new LeafNode(hashCode('key'), 'key', 'value1');
+        var B = new LeafNode(hashCode('key'), 'key', 'value2');
+        var node = BitmapIndexedNode.Empty.assoc(0, A).assoc(0, B);
+        expect(node.lookup(0, hashCode('key'), 'key')).to.exist.and.equals(B);
+      });
+    });
   });
 
 
