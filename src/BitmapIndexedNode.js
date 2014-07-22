@@ -95,14 +95,11 @@ BitmapIndexedNode.prototype.without = function(shift, hcode, key) {
 BitmapIndexedNode.prototype.lookup = function(shift, hcode, key) {
   var bit = toBitmap((hcode >>> (shift * SHIFT_STEP)) & MASK) & this.bitmap;
 
-
   if (!bit) {
     return null;
   }
 
-  // console.log(bit, this.children);
   var child = this.at(bit);
-  // console.log(child)
 
   return child.isLeaf ? (child.key === key ? child : null) : child.lookup(shift + 1, hcode, key);
 };
