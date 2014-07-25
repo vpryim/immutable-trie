@@ -135,4 +135,72 @@ describe('HashCollisionNode', function () {
       expect(hnode.kvreduce(makeEntry, [])).to.have.deep.members([['AaAa', 1], ['BBBB', 2]]);
     });
   });
+
+  describe('#mutableAssoc', function() {
+    before(function() {
+      this.root = {};
+    });
+
+    describe('- insert value in non-editable HashCollisionNode:', function() {
+      beforeEach(function() {
+        this.A = new LeafNode(hashCode('AaAa'), 'AaAa', 'value1');
+        this.B = new LeafNode(hashCode('BBBB'), 'BBBB', 'value2');
+        this.node1 = new HashCollisionNode(hashCode('AaAa'), [this.A]);
+        this.node2 = this.node1.mutableAssoc(this.root, 0, this.B);
+      });
+
+      it('should create a new HashCollisionNode', function() {
+        expect(this.node2).to.be.instanceof(HashCollisionNode).and.not.equal(this.node1);
+      });
+
+      it('first value should be reachable', function() {
+        expect(this.node2.lookup(0, hashCode('AaAa'), 'AaAa'))
+          .to.be.instanceof(LeafNode)
+          .and.have.property('value').that.equal('value1');
+      });
+
+      it('second value should be reachable', function() {
+        expect(this.node2.lookup(0, hashCode('BBBB'), 'BBBB'))
+          .to.be.instanceof(LeafNode)
+          .and.have.property('value').that.equal('value2');
+      });
+    });
+
+    describe('- insert value in editable HashCollisionNode:', function() {
+      beforeEach(function() {
+        this.A = new LeafNode(hashCode('AaAa'), 'AaAa', 'value1');
+        this.B = new LeafNode(hashCode('BBBB'), 'BBBB', 'value2');
+        this.C = new LeafNode(hashCode('AaBB'), 'AaBB', 'value3');
+        this.node1 = new HashCollisionNode(hashCode('AaAa'), [this.A]);
+        this.node2 = this.node1.mutableAssoc(this.root, 0, this.B);
+        this.node3 = this.node2.mutableAssoc(this.root, 0, this.C);
+      });
+
+      it('should modify this node', function() {
+        expect(this.node3).to.equal(this.node2);
+      });
+
+      it('should add new leaf in tail of children list', function() {
+        expect(this.node3.children[2]).to.equal(this.C);
+      });
+
+      it('first value should be reachable', function() {
+        expect(this.node3.lookup(0, hashCode('AaAa'), 'AaAa'))
+          .to.be.instanceof(LeafNode)
+          .and.have.property('value').that.equal('value1');
+      });
+
+      it('second value should be reachable', function() {
+        expect(this.node3.lookup(0, hashCode('BBBB'), 'BBBB'))
+          .to.be.instanceof(LeafNode)
+          .and.have.property('value').that.equal('value2');
+      });
+
+      it('second value should be reachable', function() {
+        expect(this.node3.lookup(0, hashCode('AaBB'), 'AaBB'))
+          .to.be.instanceof(LeafNode)
+          .and.have.property('value').that.equal('value3');
+      });
+    });
+  });
 });

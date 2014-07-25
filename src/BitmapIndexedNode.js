@@ -12,9 +12,10 @@ var BUCKET_SIZE = 32;
 var MASK = BUCKET_SIZE - 1;
 
 
-function BitmapIndexedNode(bitmap, children) {
+function BitmapIndexedNode(bitmap, children, root) {
   this.bitmap = bitmap | 0; // explicitly convert to 32-bit unsigned int
   this.children = children;
+  this.root = root;
   this.isLeaf = false;
 }
 
@@ -131,6 +132,60 @@ BitmapIndexedNode.prototype.kvreduce = function (fn, init) {
   }
 
   return acc;
+};
+
+BitmapIndexedNode.prototype.mutableAssoc = function(root, shift, leaf) {
+  var node = this.ensureEditable(root);
+
+  var fragment = (leaf.hcode >>> (shift * SHIFT_STEP)) & MASK;
+  var bit = toBitmap(fragment);
+  var exists = bit & node.bitmap;
+  var idx = popcount(node.bitmap & (bit - 1));
+  var newBitmap = node.bitmap | bit;
+
+  if (!exists) {
+    node.bitmap = newBitmap;
+    node.children.splice(idx, 0, leaf);
+    return node;
+  }
+
+  var child = node.children[idx];
+
+  if (child.isLeaf && child.key === leaf.key) {
+    node.children[idx] = leaf;
+    return node;
+  }
+
+  if (child.isLeaf && child.hcode === leaf.hcode) {
+    node.children[idx] = new HashCollisionNode(child.hcode, [child, leaf], root);
+    return node;
+  }
+
+  if (child.isLeaf) {
+    var biBitmap = toBitmap(child.hcode >>> ((shift + 1) * SHIFT_STEP)) | toBitmap(leaf.hcode >>> ((shift + 1) * SHIFT_STEP));
+    node.children[idx] = new BitmapIndexedNode(biBitmap, [child, leaf], root);
+    return node;
+  }
+
+  var newChild = child.mutableAssoc(root, shift + 1, leaf);
+
+  if (newChild !== child) {
+    node.children[idx] = newChild;
+  }
+
+  return node;
+};
+
+BitmapIndexedNode.prototype.ensureEditable = function(root) {
+  if (!this.root) {
+    return new BitmapIndexedNode(this.bitmap, this.children.slice(), root);
+  }
+
+  if (this.root === root) {
+    return this;
+  }
+
+  throw new Error('BitmapIndexedNode is used outside transient');
 };
 
 module.exports = BitmapIndexedNode;

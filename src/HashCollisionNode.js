@@ -1,9 +1,10 @@
 var find = require('./common').find;
 
-function HashCollisionNode(hcode, children) {
+function HashCollisionNode(hcode, children, root) {
   this.hcode = hcode;
   this.children = children;
   this.isLeaf = false;
+  this.root = root;
 }
 
 HashCollisionNode.prototype.assoc = function(shift, leaf) {
@@ -54,5 +55,24 @@ HashCollisionNode.prototype.kvreduce = function(fn, init) {
 
   return acc;
 };
+
+HashCollisionNode.prototype.mutableAssoc = function(root, shift, leaf) {
+  var node = this.ensureEditable(root);
+  node.children.push(leaf);
+  return node;
+};
+
+HashCollisionNode.prototype.ensureEditable = function(root) {
+  if (!this.root) {
+    return new HashCollisionNode(this.hcode, this.children.slice(), root);
+  }
+
+  if (this.root === root) {
+    return this;
+  }
+
+  throw new Error('HashCollisionNode is used outside transient');
+};
+
 
 module.exports = HashCollisionNode;

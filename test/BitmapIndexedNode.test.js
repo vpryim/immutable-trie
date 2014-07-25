@@ -427,5 +427,212 @@ describe('BitmapIndexedNode', function () {
       expect(hnode.kvreduce(makeEntry, [])).to.have.deep.members([['key1', 1], ['key2', 2]]);
     });
   });
-});
 
+  describe('#mutableAssoc', function() {
+    beforeEach(function() {
+      this.root = {};
+    });
+
+    describe('- insert value in empty node:', function() {
+      it('should create a new BitmapIndexedNode', function () {
+        var A = new LeafNode(hashCode('key'), 'key', 'value');
+        var node = BitmapIndexedNode.Empty.mutableAssoc(this.root, 0, A);
+        expect(node).to.not.equal(BitmapIndexedNode.Empty);
+      });
+
+      it('new BitmapIndexedNode should have inserted leaf', function() {
+        var A = new LeafNode(hashCode('key'), 'key', 'value');
+        var node = BitmapIndexedNode.Empty.mutableAssoc(this.root, 0, A);
+        expect(node.children).to.have.length(1);
+        expect(node.children[0]).to.equals(A);
+      });
+
+      it('new BitmapIndexedNode should have correct root', function() {
+        var A = new LeafNode(hashCode('key'), 'key', 'value');
+        var node = BitmapIndexedNode.Empty.mutableAssoc(this.root, 0, A);
+        expect(node.root).to.equal(this.root);
+      });
+    });
+
+    describe('- insert two values with equal keys:', function() {
+      it('should modify node', function() {
+        var A = new LeafNode(hashCode('key'), 'key', 'value1');
+        var B = new LeafNode(hashCode('key'), 'key', 'value2');
+        var node1 = BitmapIndexedNode.Empty.mutableAssoc(this.root, 0, A);
+        var node2 = node1.mutableAssoc(this.root, 0, B);
+        expect(node2).to.equal(node1);
+      });
+
+      it('should update value', function() {
+        var A = new LeafNode(hashCode('key'), 'key', 'value1');
+        var B = new LeafNode(hashCode('key'), 'key', 'value2');
+        var node = BitmapIndexedNode.Empty
+          .mutableAssoc(this.root, 0, A)
+          .mutableAssoc(this.root, 0, B)
+
+        expect(node.children).to.have.length(1);
+        expect(node.children[0]).to.equal(B);
+      });
+    });
+
+    describe('- insert two values with different keys but equal hashcodes:', function() {
+      it('should modify node', function() {
+        var A = new LeafNode(hashCode('AaAa'), 'AaAa', 'value1');
+        var B = new LeafNode(hashCode('BBBB'), 'BBBB', 'value2');
+        var node1 = BitmapIndexedNode.Empty.mutableAssoc(this.root, 0, A);
+        var node2 = node1.mutableAssoc(this.root, 0, B);
+        expect(node2).to.equal(node1);
+      });
+
+      it('should create a new HashCollisionNode', function() {
+        var A = new LeafNode(hashCode('AaAa'), 'AaAa', 'value1');
+        var B = new LeafNode(hashCode('BBBB'), 'BBBB', 'value2');
+        var node = BitmapIndexedNode.Empty
+          .mutableAssoc(this.root, 0, A)
+          .mutableAssoc(this.root, 0, B);
+
+        expect(node.children[0]).to.be.instanceof(HashCollisionNode);
+      });
+
+      it('first value should be reachable', function() {
+        var A = new LeafNode(hashCode('AaAa'), 'AaAa', 'value1');
+        var B = new LeafNode(hashCode('BBBB'), 'BBBB', 'value2');
+        var node = BitmapIndexedNode.Empty
+          .mutableAssoc(this.root, 0, A)
+          .mutableAssoc(this.root, 0, B);
+
+        expect(node.lookup(0, hashCode('AaAa'), 'AaAa')).to.be.instanceof(LeafNode)
+          .and.have.property('value').that.equal('value1');
+      });
+
+      it('second value should be reachable', function() {
+        var A = new LeafNode(hashCode('AaAa'), 'AaAa', 'value1');
+        var B = new LeafNode(hashCode('BBBB'), 'BBBB', 'value2');
+        var node = BitmapIndexedNode.Empty
+          .mutableAssoc(this.root, 0, A)
+          .mutableAssoc(this.root, 0, B);
+
+        expect(node.lookup(0, hashCode('BBBB'), 'BBBB')).to.be.instanceof(LeafNode)
+          .and.have.property('value').that.equal('value2');
+      });
+    });
+
+    describe('- insert LeafNode at position with existing LeafNode: ', function() {
+      beforeEach(function () {
+        this.A = b('00 01010');
+        this.B = b('11 01010');
+      });
+
+      it('should modify node', function() {
+        var A = new LeafNode(this.A, this.A, 1);
+        var B = new LeafNode(this.B, this.B, 2);
+        var node1 = BitmapIndexedNode.Empty.mutableAssoc(this.root, 0, A)
+        var node2 = node1.mutableAssoc(this.root, 0, B);
+        expect(node2).to.equal(node1);
+      });
+
+      it('should create a new BitmapIndexedNode on LeafNode position', function() {
+        var A = new LeafNode(this.A, this.A, 1);
+        var B = new LeafNode(this.B, this.B, 2);
+        var node = BitmapIndexedNode.Empty
+          .mutableAssoc(this.root, 0, A)
+          .mutableAssoc(this.root, 0, B);
+
+        expect(node.children[0]).to.be.instanceof(BitmapIndexedNode);
+      });
+
+      it('new BitmapIndexedNode should have correct root', function() {
+        var A = new LeafNode(this.A, this.A, 1);
+        var B = new LeafNode(this.B, this.B, 2);
+        var node = BitmapIndexedNode.Empty
+          .mutableAssoc(this.root, 0, A)
+          .mutableAssoc(this.root, 0, B);
+
+        expect(node.children[0].root).to.equal(node.root);
+      });
+
+      it('first value should be reachable', function() {
+        var A = new LeafNode(this.A, this.A, 1);
+        var B = new LeafNode(this.B, this.B, 2);
+        var node = BitmapIndexedNode.Empty
+          .mutableAssoc(this.root, 0, A)
+          .mutableAssoc(this.root, 0, B);
+
+        expect(node.lookup(0, this.A, this.A)).to.be.instanceof(LeafNode)
+          .and.have.property('value').that.equal(1);
+      });
+
+      it('second value should be reachable', function() {
+        var A = new LeafNode(this.A, this.A, 1);
+        var B = new LeafNode(this.B, this.B, 2);
+        var node = BitmapIndexedNode.Empty
+          .mutableAssoc(this.root, 0, A)
+          .mutableAssoc(this.root, 0, B);
+
+        expect(node.lookup(0, this.B, this.B)).to.be.instanceof(LeafNode)
+          .and.have.property('value').that.equal(2);
+      });
+    });
+
+    describe('- insert LeafNode at position with existing BitmapIndexedNode:', function() {
+      beforeEach(function() {
+        this.A = b('00 01010');
+        this.B = b('11 01010');
+        this.C = b('10 01010');
+
+        var A = new LeafNode(this.A, this.A, 1);
+        var B = new LeafNode(this.B, this.B, 2);
+        var C = new LeafNode(this.C, this.C, 3);
+
+        this.root = {};
+        this.fullNode = BitmapIndexedNode.Empty
+          .mutableAssoc(this.root, 0, A)
+          .mutableAssoc(this.root, 0, B)
+          .mutableAssoc(this.root, 0, C);
+      });
+
+      it('should modify node', function() {
+        var D = new LeafNode(b('111 01010'), b('111 01010'), 4);
+        var newNode = this.fullNode.mutableAssoc(this.root, 0, D);
+        expect(newNode).to.equal(this.fullNode);
+      });
+
+      it('should create a new BitmapIndexedNode on the insert position', function() {
+        var D = new LeafNode(b('111 01010'), b('111 01010'), 3);
+        var newNode = this.fullNode.mutableAssoc(this.root, 0, D);
+
+        expect(newNode.children[0]).to.be.instanceof(BitmapIndexedNode);
+        expect(newNode.children[0]).to.equal(this.fullNode.children[0]);
+      });
+
+      it('first value should be reachable', function() {
+        var D = new LeafNode(b('111 01010'), b('111 01010'), 4);
+        var node = this.fullNode.mutableAssoc(this.root, 0, D);
+        expect(node.lookup(0, this.A, this.A)).to.be.instanceof(LeafNode)
+          .and.have.property('value').that.equal(1);
+      });
+
+      it('second value should be reachable', function() {
+        var D = new LeafNode(b('111 01010'), b('111 01010'), 4);
+        var node = this.fullNode.mutableAssoc(this.root, 0, D);
+        expect(node.lookup(0, this.B, this.B)).to.be.instanceof(LeafNode)
+          .and.have.property('value').that.equal(2);
+      });
+
+      it('third value should be reachable', function() {
+        var D = new LeafNode(b('111 01010'), b('111 01010'), 4);
+        var node = this.fullNode.mutableAssoc(this.root, 0, D);
+        expect(node.lookup(0, this.C, this.C)).to.be.instanceof(LeafNode)
+          .and.have.property('value').that.equal(3);
+      });
+
+      it('fourth value should be reachable', function() {
+        var D = new LeafNode(b('111 01010'), b('111 01010'), 4);
+        var node = this.fullNode.mutableAssoc(this.root, 0, D);
+        expect(node.lookup(0, b('111 01010'), b('111 01010'))).to.be.instanceof(LeafNode)
+          .and.have.property('value').that.equal(4) ;
+      });
+
+    });
+  });
+});
