@@ -635,4 +635,156 @@ describe('BitmapIndexedNode', function () {
 
     });
   });
+
+  describe('#mutableWithout', function() {
+    describe('- remove value from non-editable node', function() {
+      before(function() {
+        this.root = {};
+
+        this.A = new LeafNode(hashCode('key1'), 'key1', 'value1');
+        this.B = new LeafNode(hashCode('key2'), 'key2', 'value2');
+        this.C = new LeafNode(hashCode('key3'), 'key3', 'value3');
+
+        this.node1 = BitmapIndexedNode.Empty
+          .assoc(0, this.A)
+          .assoc(0, this.B)
+          .assoc(0, this.C)
+
+        this.node2 = this.node1.mutableWithout(this.root, 0, hashCode('key1'), 'key1');
+      });
+
+      it('should return a new BitmapIndexedNode', function() {
+        expect(this.node2).to.be.instanceof(BitmapIndexedNode).and.not.equal(this.node1);
+      });
+
+      it('new BitmapIndexedNode should not have removed value', function() {
+        expect(this.node2.lookup(0, hashCode('key1'), 'key1')).to.be.null;
+      });
+
+      it('new BitmapIndexedNode should have non-removed values', function() {
+        expect(this.node2.lookup(0, hashCode('key2'), 'key2'))
+          .to.be.instanceof(LeafNode)
+          .and.have.property('value').that.equal('value2');
+
+        expect(this.node2.lookup(0, hashCode('key3'), 'key3'))
+          .to.be.instanceof(LeafNode)
+          .and.have.property('value').that.equal('value3');
+      });
+    });
+
+    describe('- remove value from editable node', function() {
+      before(function() {
+        this.root = {};
+
+        this.A = new LeafNode(hashCode('key1'), 'key1', 'value1');
+        this.B = new LeafNode(hashCode('key2'), 'key2', 'value2');
+        this.C = new LeafNode(hashCode('key3'), 'key3', 'value3');
+        this.D = new LeafNode(hashCode('key4'), 'key4', 'value4');
+
+        this.node1 = BitmapIndexedNode.Empty
+          .assoc(0, this.A)
+          .assoc(0, this.B)
+          .assoc(0, this.C)
+          .assoc(0, this.D)
+
+        this.node2 = this.node1.mutableWithout(this.root, 0, hashCode('key1'), 'key1');
+        this.node3 = this.node2.mutableWithout(this.root, 0, hashCode('key2'), 'key2');
+      });
+
+      it('should modify this node', function() {
+        expect(this.node3).to.equal(this.node2);
+      });
+
+      it('removed values should not be reachable', function() {
+        expect(this.node3.lookup(0, hashCode('key1'), 'key1')).to.be.null;
+        expect(this.node3.lookup(0, hashCode('key2'), 'key2')).to.be.null;
+      });
+
+      it('non-removed values should be reachable', function() {
+        expect(this.node3.lookup(0, hashCode('key3'), 'key3'))
+          .to.be.instanceof(LeafNode)
+          .and.have.property('value').that.equal('value3');
+
+        expect(this.node3.lookup(0, hashCode('key4'), 'key4'))
+          .to.be.instanceof(LeafNode)
+          .and.have.property('value').that.equal('value4');
+      });
+    });
+
+    describe('- remove from empty node', function() {
+      it('should return empty node', function() {
+        expect(BitmapIndexedNode.Empty.mutableWithout({}, 0, hashCode('key'), 'key'))
+          .to.equal(BitmapIndexedNode.Empty);
+      });
+    });
+
+    describe('- remove last value', function() {
+      it('should return empty node', function() {
+        var A = new LeafNode(hashCode('key'), 'key', 'value');
+        var node = BitmapIndexedNode.Empty.assoc(0, A);
+        expect(node.mutableWithout({}, 0, hashCode('key'), 'key'))
+          .to.equal(BitmapIndexedNode.Empty);
+      });
+    });
+
+    describe('- remove one of two node values', function() {
+      it('should collapse to leaf node', function() {
+        var A = new LeafNode(hashCode('key1'), 'key1', 'value1');
+        var B = new LeafNode(hashCode('key2'), 'key2', 'value2');
+
+        var node = BitmapIndexedNode.Empty
+          .assoc(0, A)
+          .assoc(0, B)
+          .mutableWithout({}, 0, hashCode('key1'), 'key1')
+
+        expect(node).to.equal(B);
+      });
+    });
+
+    describe('- remove missing value', function() {
+      it('should return the same node unchanged', function() {
+        var A = new LeafNode(hashCode('key1'), 'key1', 'value1');
+        var B = new LeafNode(hashCode('key2'), 'key2', 'value2');
+
+        var node1 = BitmapIndexedNode.Empty
+          .assoc(0, A)
+          .assoc(0, B)
+
+        var node2 = node1.mutableWithout({}, 0, hashCode('missing'), 'missing')
+
+        expect(node2).to.equal(node1);
+        expect(node2.children).to.deep.equal(node1.children);
+        expect(node2.bitmap).to.equal(node1.bitmap);
+      });
+    });
+
+    describe('- remove deep value', function() {
+      before(function() {
+        this.A = b('00 10001');
+        this.B = b('01 10001')
+        this.C = b('10 10001')
+
+        this.source = BitmapIndexedNode.Empty
+          .assoc(0, new LeafNode(this.A, this.A, 1))
+          .assoc(0, new LeafNode(this.B, this.B, 2))
+          .assoc(0, new LeafNode(this.C, this.C, 3))
+
+        this.removed = this.source.mutableWithout({}, 0, this.A, this.A);
+      });
+
+      it('removed value should not be reachable', function() {
+        expect(this.removed.lookup(0, this.A, this.A)).to.be.null;
+      });
+
+      it('non-removed values should be reachable', function() {
+        expect(this.removed.lookup(0, this.B, this.B))
+          .to.be.instanceof(LeafNode)
+          .and.have.property('value').that.equal(2);
+
+        expect(this.removed.lookup(0, this.C, this.C))
+          .to.be.instanceof(LeafNode)
+          .and.have.property('value').that.equal(3);
+      });
+    });
+  });
 });

@@ -176,6 +176,55 @@ BitmapIndexedNode.prototype.mutableAssoc = function(root, shift, leaf) {
   return node;
 };
 
+BitmapIndexedNode.prototype.mutableWithout = function(root, shift, hcode, key) {
+  if (this === BitmapIndexedNode.Empty) {
+    return BitmapIndexedNode.Empty;
+  }
+
+  var fragment = (hcode >>> (shift * SHIFT_STEP)) & MASK;
+  var bit = toBitmap(fragment);
+  var exists = this.bitmap & bit;
+
+  if (exists) {
+    var node = this.ensureEditable(root);
+    var children = node.children;
+    var index = popcount(node.bitmap & (bit - 1));
+    var remains = children.length - 1;
+    var child = children[index];
+
+    if (child.isLeaf && children.length > 2) {
+      /*
+        Reset a bit at given index, for example:
+          101011
+          001000
+          ------
+          100011
+       */
+      node.bitmap = node.bitmap & (~toBitmap(fragment));
+      children.splice(index, 1);
+      return node;
+    }
+
+    if (child.isLeaf && children.length === 2) {
+      return children[index === 1 ? 0 : 1];
+    }
+
+    if (child.isLeaf && children.length === 1) {
+      return BitmapIndexedNode.Empty;
+    }
+
+    var newNode = child.mutableWithout(root, shift + 1, hcode, key);
+
+    if (newNode !== child) {
+      children.splice(index, 1, newNode);
+    }
+
+    return node;
+  }
+
+  return this;
+};
+
 BitmapIndexedNode.prototype.ensureEditable = function(root) {
   if (!this.root) {
     return new BitmapIndexedNode(this.bitmap, this.children.slice(), root);
