@@ -333,17 +333,20 @@ describe('BitmapIndexedNode', function () {
 
     describe('- remove deep value:', function () {
       it('should return new BitmapIndexedNode without removed value', function () {
-        var A = b('1 00001');
+        var A = b('00 10001');
+        var B = b('01 10001');
+        var C = b('10 10001');
+
         var source = BitmapIndexedNode.Empty
-          .assoc(0, new LeafNode(1, 1, 1))
-          .assoc(0, new LeafNode(2, 2, 2))
-          .assoc(0, new LeafNode(A, A, A))
+          .assoc(0, new LeafNode(A, A, 1))
+          .assoc(0, new LeafNode(B, B, 2))
+          .assoc(0, new LeafNode(C, C, 3))
 
         var removed = source.without(0, A, A);
 
         expect(removed.lookup(0, A, A)).to.not.exists;
-        expect(removed.lookup(0, 1, 1)).to.exist.and.have.property('value').that.equals(1);
-        expect(removed.lookup(0, 2, 2)).to.exist.and.have.property('value').that.equals(2);
+        expect(removed.lookup(0, B, B)).to.exist.and.have.property('value').that.equals(2);
+        expect(removed.lookup(0, C, C)).to.exist.and.have.property('value').that.equals(3);
       });
     });
 
@@ -389,7 +392,7 @@ describe('BitmapIndexedNode', function () {
       });
     });
 
-    describe('- remove value that not exists', function() {
+    describe('- remove value that does not exists', function() {
       it('should return this node', function() {
         expect(BitmapIndexedNode.Empty.without(0, 1, 1)).to.equal(BitmapIndexedNode.Empty);
 
