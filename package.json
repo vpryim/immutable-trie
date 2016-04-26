@@ -2,7 +2,7 @@
   "name": "immutable-trie",
   "version": "0.3.2",
   "description": "Basis for efficient persistent data structures",
-  "main": "index.js",
+  "main": "lib/index.js",
   "keywords": [
     "immutable",
     "persistent",
@@ -16,11 +16,15 @@
   "author": "Vasyl Pryimachuk <activeobject.ac@gmail.com>",
   "license": "Apache-2.0",
   "devDependencies": {
+    "babel-cli": "^6.7.7",
+    "babel-preset-es2015": "^6.6.0",
     "chai": "~1.9.0",
     "istanbul": "^0.3.0",
     "mocha": "~1.17.1"
   },
   "scripts": {
+    "prepublish": "npm run compile",
+    "compile": "babel -d lib/ src/",
     "test": "mocha --compilers js:babel-register -R spec",
     "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --compilers js:babel-register -R dot --check-leaks",
     "test-travis": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --compilers js:babel-register -R spec --check-leaks"
