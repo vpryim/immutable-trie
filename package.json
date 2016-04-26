@@ -21,8 +21,8 @@
     "mocha": "~1.17.1"
   },
   "scripts": {
-    "test": "mocha -R spec",
-    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- -R dot --check-leaks",
-    "test-travis": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- -R spec --check-leaks"
+    "test": "mocha --compilers js:babel-register -R spec",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --compilers js:babel-register -R dot --check-leaks",
+    "test-travis": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --compilers js:babel-register -R spec --check-leaks"
   }
 }

@@ -1,11 +1,10 @@
-var util = require('util');
-var chai = require('chai');
-var expect = chai.expect;
+import util from 'util';
+import { expect } from 'chai';
 
-var BitmapIndexedNode = require('../src/BitmapIndexedNode');
-var HashCollisionNode = require('../src/HashCollisionNode');
-var LeafNode = require('../src/LeafNode');
-var toBitmap = require('../src/common').toBitmap;
+import BitmapIndexedNode from '../src/BitmapIndexedNode';
+import HashCollisionNode from '../src/HashCollisionNode';
+import LeafNode from '../src/LeafNode';
+import { toBitmap } from '../src/common'
 
 function b(str){
   return parseInt(str.split(' ').join(''), 2);
@@ -428,4 +427,3 @@ describe('BitmapIndexedNode', function () {
     });
   });
 });
-

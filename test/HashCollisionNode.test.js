@@ -1,9 +1,8 @@
-var util = require('util');
-var chai = require('chai');
-var expect = chai.expect;
+import util from 'util';
+import { expect } from 'chai';
 
-var HashCollisionNode = require('../src/HashCollisionNode');
-var LeafNode = require('../src/LeafNode');
+import HashCollisionNode from '../src/HashCollisionNode';
+import LeafNode from '../src/LeafNode';
 
 function hashCode(value) {
   var hash = 0, character;

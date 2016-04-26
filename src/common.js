@@ -3,7 +3,7 @@
  * operation.
  * @link http://stackoverflow.com/questions/109023/how-to-count-the-number-of-set-bits-in-a-32-bit-integer/109025#109025
  */
-function popcount(i) {
+export function popcount(i) {
   i = i - ((i >> 1) & 0x55555555);
   i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
   return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
@@ -19,7 +19,7 @@ function popcount(i) {
  * @param {Number} n
  * @return {Number} bitmap
  */
-function toBitmap(n) {
+export function toBitmap(n) {
   return 1 << n;
 }
 
@@ -31,7 +31,7 @@ function toBitmap(n) {
  * @param {Number} index
  * @return {Array}
  */
-function insertAt(items, item, index) {
+export function insertAt(items, item, index) {
   var copy = items.slice();
   copy.splice(index, 0, item);
   return copy;
@@ -45,7 +45,7 @@ function insertAt(items, item, index) {
  * @param {Number} index
  * @return {Array}
  */
-function replaceAt(items, item, index) {
+export function replaceAt(items, item, index) {
   var copy = items.slice();
   copy.splice(index, 1, item);
   return copy;
@@ -58,7 +58,7 @@ function replaceAt(items, item, index) {
  * @param {Number} index
  * @return {Array}
  */
-function removeAt(items, index) {
+export function removeAt(items, index) {
   var copy = items.slice();
   copy.splice(index, 1);
   return copy;
@@ -70,7 +70,7 @@ function removeAt(items, index) {
  * @param {Function} pred
  * @return {*}
  */
-function find(items, pred) {
+export function find(items, pred) {
   var len = items.length,
       i = -1;
 
@@ -82,10 +82,3 @@ function find(items, pred) {
 
   return null;
 }
-
-exports.popcount  = popcount;
-exports.toBitmap  = toBitmap;
-exports.insertAt  = insertAt;
-exports.replaceAt = replaceAt;
-exports.removeAt  = removeAt;
-exports.find      = find;

@@ -1,12 +1,12 @@
-var chai = require('chai');
-var expect = chai.expect;
-var common = require('../src/common');
+import { expect } from 'chai';
+import {
+  popcount,
+  toBitmap,
+  insertAt,
+  replaceAt,
+  removeAt
+} from '../src/common';
 
-var popcount  = common.popcount;
-var toBitmap  = common.toBitmap;
-var insertAt  = common.insertAt;
-var replaceAt = common.replaceAt;
-var removeAt  = common.removeAt;
 
 function b(str) {
   return parseInt(str.split(' ').join(), 2)
